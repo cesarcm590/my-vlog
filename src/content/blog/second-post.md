@@ -2,7 +2,8 @@
 title: 'Día 9 de enero de 2026'
 description: 'César realiza un experimento'
 pubDate: 'Jan 9 2026'
-heroImage: /img/090126.JPG
+heroImage: /090126.jpg
+
 ---
 
 Me di a la tarea de crear un nuevo formato en mi vida, ante la falta de redes sociales en mi día a día recurro a un formato nuevo en el cual puedo dar un poco más de rienda suelta a los pensamientos que habitan mi cabeza día a día y con ello aprender nuevas habilidades, creo que a veces nos ciclamos tanto en hacer las cosas de forma manual una y otra vez como si el fin último de la vida fuera solo llegar a un resultado, a producir más a que todo lo que se haga tenga como propósito el capital. 
