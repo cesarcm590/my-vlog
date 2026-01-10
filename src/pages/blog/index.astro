@@ -18,78 +18,105 @@ const FALLBACK_IMAGE = "/blog-placeholder-1.jpg";
   <head>
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
     <style>
-      main {
-        width: 960px;
-        max-width: calc(100% - 2em);
-        margin: 0 auto;
-      }
-      ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 2rem;
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-      ul li {
-        width: calc(50% - 1rem);
-      }
-      ul li * {
-        text-decoration: none;
-        transition: 0.2s ease;
-      }
-      ul li:first-child {
-        width: 100%;
-        margin-bottom: 1rem;
-        text-align: center;
-      }
-      ul li:first-child img {
-        width: 100%;
-      }
-      ul li:first-child .title {
-        font-size: 2.369rem;
-      }
-      ul li img {
-        display: block;
-        width: 100%;
-        height: auto;
-        margin-bottom: 0.5rem;
-        border-radius: 12px;
-      }
-      ul li a {
-        display: block;
-      }
-      .title {
-        margin: 0;
-        color: rgb(var(--black));
-        line-height: 1;
-      }
-      .date {
-        margin: 0;
-        color: rgb(var(--gray));
-      }
-      ul li a:hover h4,
-      ul li a:hover .date {
-        color: rgb(var(--accent));
-      }
-      ul a:hover img {
-        box-shadow: var(--box-shadow);
-      }
-      @media (max-width: 720px) {
-        ul {
-          gap: 0.5em;
-        }
-        ul li {
-          width: 100%;
-          text-align: center;
-        }
-        ul li:first-child {
-          margin-bottom: 0;
-        }
-        ul li:first-child .title {
-          font-size: 1.563em;
-        }
-      }
+     main {
+  width: 960px;
+  max-width: calc(100% - 2em);
+  margin: 0 auto;
+}
+
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul li {
+  width: calc(50% - 1rem);
+}
+
+ul li * {
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+/* === IMÁGENES DE LOS POSTS === */
+ul li img {
+  width: 100%;
+  height: 220px;        /* tamaño fijo */
+  object-fit: cover;    /* recorte bonito */
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  display: block;
+}
+
+/* === POST DESTACADO (PRIMERO) === */
+ul li:first-child {
+  width: 100%;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+ul li:first-child img {
+  height: 320px;        /* destacado, pero controlado */
+}
+
+ul li:first-child .title {
+  font-size: 2.2rem;
+}
+
+/* === TEXTO === */
+.title {
+  margin: 0;
+  color: rgb(var(--black));
+  line-height: 1.1;
+}
+
+.date {
+  margin: 0.25rem 0 0;
+  color: rgb(var(--gray));
+}
+
+/* === HOVER === */
+ul li a:hover h4,
+ul li a:hover .date {
+  color: rgb(var(--accent));
+}
+
+ul li a:hover img {
+  box-shadow: var(--box-shadow);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 720px) {
+  ul {
+    gap: 1rem;
+  }
+
+  ul li {
+    width: 100%;
+    text-align: center;
+  }
+
+  ul li:first-child {
+    margin-bottom: 0;
+  }
+
+  ul li img {
+    height: 200px;
+  }
+
+  ul li:first-child img {
+    height: 240px;
+  }
+
+  ul li:first-child .title {
+    font-size: 1.4rem;
+  }
+}
+
     </style>
   </head>
 
