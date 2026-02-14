@@ -3,6 +3,12 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import ViewsCounter from '../components/ViewsCounter.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 ---
 
 <!doctype html>
@@ -63,13 +69,8 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
         del sitio.
       </p>
 
-      <!-- Imagen desde public/ (opcional) -->
-      <img
-        src="/blog-placeholder-1.jpg"
-        alt="Imagen de portada"
-        style="width:100%; margin-top:2rem; border-radius:12px;"
-        loading="lazy"
-      />
+<ViewsCounter page="/" />
+
     </main>
 
     <Footer />

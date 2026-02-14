@@ -1,0 +1,114 @@
+---
+const { page } = Astro.props; // ej "/blog/090126" o "/"
+---
+
+<span class="views" id="views-counter">Visitas: …</span>
+
+<style>
+  .views {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    opacity: 0.9;
+    transition: transform 300ms ease, opacity 300ms ease;
+  }
+  .views.bump {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+  .views .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.35;
+  }
+</style>
+
+<script define:vars={{ page }}>
+  const el = document.getElementById("views-counter");
+
+  // --- Config anti-spam ---
+  const MAX_PER_HOUR = 20;          // lo que pediste
+  const HOUR_MS = 60 * 60 * 1000;
+  const MIN_COOLDOWN_MS = 2 * 60 * 1000; // 1 view cada 2 minutos (ajusta si quieres)
+
+  function keyTimestamps(p) { return `views_ts:${p}`; }
+  function keyLastInc(p) { return `views_last_inc:${p}`; }
+
+  function now() { return Date.now(); }
+
+  function getTimestamps(p) {
+    try {
+      return JSON.parse(localStorage.getItem(keyTimestamps(p)) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function setTimestamps(p, arr) {
+    localStorage.setItem(keyTimestamps(p), JSON.stringify(arr));
+  }
+
+  function shouldIncrement(p) {
+    const t = now();
+
+    // cooldown duro (evita spam por recarga inmediata)
+    const lastInc = Number(localStorage.getItem(keyLastInc(p)) || "0");
+    if (t - lastInc < MIN_COOLDOWN_MS) return false;
+
+    // máximo 20 por hora (aunque recargue como loco)
+    let arr = getTimestamps(p).filter(ts => t - ts <= HOUR_MS);
+    if (arr.length >= MAX_PER_HOUR) {
+      setTimestamps(p, arr);
+      return false;
+    }
+
+    // permitimos y registramos intento
+    arr.push(t);
+    setTimestamps(p, arr);
+    localStorage.setItem(keyLastInc(p), String(t));
+    return true;
+  }
+
+  function animateCount(target) {
+    if (!el) return;
+
+    el.classList.add("bump");
+    setTimeout(() => el.classList.remove("bump"), 350);
+
+    const start = 0;
+    const duration = 650; // ms
+    const t0 = performance.now();
+
+    function tick(t) {
+      const p = Math.min(1, (t - t0) / duration);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = Math.round(start + (target - start) * eased);
+      el.innerHTML = `Visitas: <span>${val}</span> <span class="dot"></span>`;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  async function run() {
+    if (!el) return;
+
+    try {
+      const inc = shouldIncrement(page) ? 1 : 0;
+
+      const res = await fetch(`/api/views?page=${encodeURIComponent(page)}&inc=${inc}`);
+      const data = await res.json();
+
+      animateCount(Number(data.views ?? 0));
+    } catch (e) {
+      el.textContent = "Visitas: —";
+    }
+  }
+
+  run();
+</script>
+
