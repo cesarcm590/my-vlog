@@ -1,9 +1,18 @@
 import type { APIRoute } from "astro";
-import { supabase } from "../../lib/superbase";
+import { getDatabase } from "@netlify/database";
+
+export const prerender = false;
 
 function getPageFromRequest(url: URL) {
   const page = url.searchParams.get("page") ?? "/";
   return page.startsWith("/") ? page : `/${page}`;
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -12,65 +21,29 @@ export const GET: APIRoute = async ({ request }) => {
     const page = getPageFromRequest(url);
     const inc = url.searchParams.get("inc") === "1";
 
-    // OJO: aquí es LET (no const) porque a veces lo vamos a "rellenar"
-    let { data: existing, error: selErr } = await supabase
-      .from("page_views")
-      .select("id, views")
-      .eq("page", page)
-      .maybeSingle();
-
-    if (selErr) throw selErr;
-
-    // Si no existe, crearla
-    if (!existing) {
-      const { data: inserted, error: insErr } = await supabase
-        .from("page_views")
-        .insert({ page, views: 0 })
-        .select("id, views")
-        .single();
-
-      if (insErr) throw insErr;
-
-      // guardamos la fila en existing para poder seguir (si inc=1)
-      existing = inserted;
-
-      // si no incrementa, regresamos 0
-      if (!inc) {
-        return new Response(JSON.stringify({ page, views: existing.views ?? 0 }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+    if (page.length > 200) {
+      return json({ error: "page demasiado largo" }, 400);
     }
 
-    // Si inc=1, incrementar
+    const db = getDatabase();
+
+    // Incrementar: crea la fila si no existe y suma 1 en una sola consulta
     if (inc) {
-      const newViews = (existing.views ?? 0) + 1;
-
-      const { data: updated, error: updErr } = await supabase
-        .from("page_views")
-        .update({ views: newViews })
-        .eq("id", existing.id)
-        .select("views")
-        .single();
-
-      if (updErr) throw updErr;
-
-      return new Response(JSON.stringify({ page, views: updated.views ?? newViews }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      const [row] = await db.sql<{ views: number }>`
+        INSERT INTO page_views (page, views)
+        VALUES (${page}, 1)
+        ON CONFLICT (page) DO UPDATE SET views = page_views.views + 1
+        RETURNING views
+      `;
+      return json({ page, views: row.views });
     }
 
     // Solo leer
-    return new Response(JSON.stringify({ page, views: existing.views ?? 0 }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    const [row] = await db.sql<{ views: number }>`
+      SELECT views FROM page_views WHERE page = ${page}
+    `;
+    return json({ page, views: row?.views ?? 0 });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message ?? "Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ error: e?.message ?? "Error" }, 500);
   }
 };
